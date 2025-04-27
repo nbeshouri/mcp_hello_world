@@ -1,30 +1,40 @@
-import os, sys
-from mcp import ClientSession, StdioServerParameters, types
+from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from langchain_mcp_adapters.tools import load_mcp_tools
+from langgraph.prebuilt import create_react_agent
+import asyncio
+from langchain.chat_models import init_chat_model
 
-# Tell the client how to launch your server:
+model = init_chat_model(model="gpt-4o-mini", model_provider="openai")
+
 server_params = StdioServerParameters(
-    command=sys.executable,      # e.g. /usr/bin/python3
-    args=["src/server.py"],          # your server script
-    env=os.environ.copy(),       # inherit whatever env you need
+    command="python",
+    args=["src/server.py"],
 )
 
-async def run():
-    async with stdio_client(server_params) as (reader, writer):
-        async with ClientSession(reader, writer) as session:
+async def main():
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            
             await session.initialize()
+            tools = await load_mcp_tools(session)
+            agent = create_react_agent(model, tools)
+            
+            while True:
+                user_input = input(">> ").strip()
+                if user_input.lower() in {"exit", "quit"}:
+                    print("Exiting...")
+                    break
+                try:
+                    final_state = await agent.ainvoke(
+                        {"messages": [("user", user_input)]}, 
+                    )
+                except Exception as e:
+                    print("Error processing input:", e)
+                
+                last_response = final_state["messages"][-1].content
+                print(last_response)
 
-            # now you can list and call your tools/resources
-            tools = await session.list_tools()
-            print("Tools:", tools)
-
-            # example: call your add tool
-            result = await session.call_tool("add", {"a": 2, "b": 3})
-            print("2 + 3 =", result)
-
-            greeting = await session.read_resource("greeting://Alice")
-            print(greeting)
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(run())
+    asyncio.run(main())
