@@ -1,6 +1,11 @@
 import asyncio
 
 from fastmcp import Client
+from fastmcp.client.sampling import (
+    SamplingMessage,
+    SamplingParams,
+    RequestContext,
+)
 from langchain.chat_models import init_chat_model
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.checkpoint.memory import MemorySaver
@@ -10,7 +15,7 @@ model = init_chat_model(model="gpt-4o-mini", model_provider="openai")
 
 
 async def main():
-    async with Client("src/server.py") as client:
+    async with Client("src/server.py", sampling_handler=sampling_handler) as client:
         tools = await load_mcp_tools(client.session)
         memory = MemorySaver()
 
@@ -35,6 +40,19 @@ async def main():
 
             except Exception as e:
                 print("Error processing input:", e)
+
+
+async def sampling_handler(
+    messages: list[SamplingMessage], params: SamplingParams, context: RequestContext
+) -> str:
+    formatted_messages = []
+    formatted_messages.append({"role": "system", "content": params.systemPrompt})
+    for message in messages:
+        formatted_messages.append({"role": message.role, "content": message.content.text})
+
+    response = await model.ainvoke(formatted_messages, max_tokens=params.maxTokens)
+
+    return response.content
 
 
 if __name__ == "__main__":
