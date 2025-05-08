@@ -35,7 +35,3 @@ async def test_sampling_handler():
         assert call_args[0]["content"] == "You are a helpful assistant."
         assert call_args[1]["role"] == "user"
         assert call_args[1]["content"] == "Hello world"
-
-
-if __name__ == "__main__":
-    pytest.main(["-xvs", __file__])
