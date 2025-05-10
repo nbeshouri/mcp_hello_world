@@ -1,11 +1,7 @@
 import asyncio
 
 from fastmcp import Client
-from fastmcp.client.sampling import (
-    SamplingMessage,
-    SamplingParams,
-    RequestContext,
-)
+from fastmcp.client.sampling import RequestContext, SamplingMessage, SamplingParams
 from langchain.chat_models import init_chat_model
 from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.checkpoint.memory import MemorySaver
@@ -48,7 +44,9 @@ async def sampling_handler(
     formatted_messages = []
     formatted_messages.append({"role": "system", "content": params.systemPrompt})
     for message in messages:
-        formatted_messages.append({"role": message.role, "content": message.content.text})
+        formatted_messages.append(
+            {"role": message.role, "content": message.content.text}
+        )
 
     response = await model.ainvoke(formatted_messages, max_tokens=params.maxTokens)
 
