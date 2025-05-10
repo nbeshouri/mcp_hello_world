@@ -12,7 +12,7 @@ from langgraph.prebuilt import create_react_agent
 
 load_dotenv()
 model = init_chat_model(
-    model=os.environ["MODEL_TYPE"], model_provider=os.environ["MODEL_PROVIDER"]
+    model=os.environ["MODEL"], model_provider=os.environ["MODEL_PROVIDER"]
 )
 
 
