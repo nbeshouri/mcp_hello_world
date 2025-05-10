@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from dotenv import load_dotenv
 from fastmcp import Client
@@ -10,7 +11,9 @@ from langgraph.prebuilt import create_react_agent
 
 
 load_dotenv()
-model = init_chat_model(model="gpt-4o-mini", model_provider="openai")
+model = init_chat_model(
+    model=os.environ["MODEL_TYPE"], model_provider=os.environ["MODEL_PROVIDER"]
+)
 
 
 async def main():
