@@ -1,5 +1,6 @@
 import asyncio
 
+from dotenv import load_dotenv
 from fastmcp import Client
 from fastmcp.client.sampling import RequestContext, SamplingMessage, SamplingParams
 from langchain.chat_models import init_chat_model
@@ -7,6 +8,8 @@ from langchain_mcp_adapters.tools import load_mcp_tools
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
+
+load_dotenv()
 model = init_chat_model(model="gpt-4o-mini", model_provider="openai")
 
 
